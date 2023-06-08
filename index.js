@@ -29,7 +29,11 @@ async function run() {
         const classCollection = client.db("LLCDB").collection("classCollection");
 
         app.get("/classes", async(req, res)=>{
-            const result = await classCollection.find().toArray()
+            const query = {}
+            const options = {
+                sort: {"total_enroll": -1}
+            }
+            const result = await classCollection.find(query, options).toArray()
             res.send(result)
         })
 
