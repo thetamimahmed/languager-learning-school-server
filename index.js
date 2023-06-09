@@ -27,13 +27,23 @@ async function run() {
         await client.connect();
 
         const classCollection = client.db("LLCDB").collection("classCollection");
-
+        const instructorCollection = client.db("LLCDB").collection("instructors");
+        //get classes
         app.get("/classes", async(req, res)=>{
             const query = {}
             const options = {
                 sort: {"total_enroll": -1}
             }
             const result = await classCollection.find(query, options).toArray()
+            res.send(result)
+        })
+        //get instructors
+        app.get("/instructors", async(req, res)=>{
+            const query = {}
+            const options = {
+                sort: {"students_in_class": -1}
+            }
+            const result = await instructorCollection.find(query, options).toArray()
             res.send(result)
         })
 
