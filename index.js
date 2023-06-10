@@ -66,14 +66,18 @@ async function run() {
         })
 
         //added pending class
-        app.post("/addedClass", verifyJWT, async(req, res)=>{
+        app.post("/addedClasses", verifyJWT, async(req, res)=>{
             const addedClass = req.body
             const result = await addedClassCollection.insertOne(addedClass)
             res.send(result)
         })
 
-        app.get("/addedClasses", verifyJWT, async(req, res)=>{
-            const result = await addedClassCollection.find().toArray()
+        app.get("/addedClasses", async(req, res)=>{
+            const email = req.query?.email
+            console.log(email)
+            
+            const query = {email: email}
+            const result = await addedClassCollection.find(query).toArray()
             res.send(result)
         })
 
