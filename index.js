@@ -28,6 +28,8 @@ async function run() {
 
         const classCollection = client.db("LLCDB").collection("classCollection");
         const instructorCollection = client.db("LLCDB").collection("instructors");
+        const bookingCollection = client.db("LLCDB").collection("bookingClasses");
+
         //get classes
         app.get("/classes", async(req, res)=>{
             const query = {}
@@ -44,6 +46,13 @@ async function run() {
                 sort: {"students_in_class": -1}
             }
             const result = await instructorCollection.find(query, options).toArray()
+            res.send(result)
+        })
+
+        //booking class
+        app.post("/bookingclasses", async(req, res)=>{
+            const selectClass = req.body;
+            const result = await bookingCollection.insertOne(selectClass)
             res.send(result)
         })
 
