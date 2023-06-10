@@ -65,6 +65,12 @@ async function run() {
             res.send(result)
         })
 
+        app.post("/classes", async(req, res)=>{
+            const approveClass = req.body;
+            const result = await classCollection.insertOne(approveClass)
+            res.send(result)
+        })
+
         //added pending class
         app.post("/addedClasses", verifyJWT, async(req, res)=>{
             const addedClass = req.body
@@ -72,14 +78,29 @@ async function run() {
             res.send(result)
         })
 
-        app.get("/addedClasses", async(req, res)=>{
+        app.get("/addedClasses", verifyJWT, async(req, res)=>{
             const email = req.query?.email
-            console.log(email)
-            
-            const query = {email: email}
+            let query = {}
+            if(email){
+                query = {email: email}
+            }
             const result = await addedClassCollection.find(query).toArray()
             res.send(result)
         })
+
+        app.patch('/addedClasses/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+              $set: {
+                status: 'Approve'
+              },
+            };
+      
+            const result = await addedClassCollection.updateOne(filter, updateDoc);
+            res.send(result);
+      
+          })
 
         //get instructors
         app.get("/instructors", async (req, res) => {
