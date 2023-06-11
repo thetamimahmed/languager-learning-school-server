@@ -71,6 +71,13 @@ async function run() {
             res.send(result)
         })
 
+        // app.delete("classes/:id", async(req, res)=>{
+        //     const id = req.params.id;
+        //     const query = { _id: new ObjectId(id) }
+        //     const result = await classCollection.deleteOne(query)
+        //     res.send(result)
+        // })
+
         //added pending class
         app.post("/addedClasses", verifyJWT, async(req, res)=>{
             const addedClass = req.body
@@ -88,12 +95,29 @@ async function run() {
             res.send(result)
         })
 
-        app.patch('/addedClasses/:id', async (req, res) => {
+        app.patch('/addedClasses/:status/:id', async (req, res) => {
+            const status = req.params.status;
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
               $set: {
-                status: 'Approve'
+                status: status === 'Approve' ? 'Approve' : 'Deny'
+              },
+            };
+      
+            const result = await addedClassCollection.updateOne(filter, updateDoc);
+            res.send(result);
+      
+          })
+
+        app.patch('/addedClasses/:id', async (req, res) => {
+            const id = req.params.id;
+            const feedbackText = req.body;
+            console.log(feedbackText)
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+              $set: {
+                feedback:feedbackText.feedback
               },
             };
       
