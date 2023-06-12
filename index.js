@@ -43,6 +43,7 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
+        const usersCollection = client.db("LLCDB").collection("users");
         const classCollection = client.db("LLCDB").collection("classCollection");
         const instructorCollection = client.db("LLCDB").collection("instructors");
         const bookingCollection = client.db("LLCDB").collection("bookingClasses");
@@ -53,6 +54,18 @@ async function run() {
             const user = req.body;
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
             res.send(token)
+        })
+
+        //users
+        app.post("/users", async(req, res)=>{
+            const user = req.body
+            const query = {email: user.email}
+            const existingUser = await usersCollection.findOne(query)
+            if(existingUser){
+                return res.send({message: 'User Exist'})
+            }
+            const result = await usersCollection.insertOne(user)
+            res.send(result)
         })
 
         //get classes
@@ -71,12 +84,7 @@ async function run() {
             res.send(result)
         })
 
-        // app.delete("classes/:id", async(req, res)=>{
-        //     const id = req.params.id;
-        //     const query = { _id: new ObjectId(id) }
-        //     const result = await classCollection.deleteOne(query)
-        //     res.send(result)
-        // })
+       
 
         //added pending class
         app.post("/addedClasses", verifyJWT, async(req, res)=>{
