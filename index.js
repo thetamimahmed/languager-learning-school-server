@@ -88,6 +88,16 @@ async function run() {
 
         })
 
+        app.get("/users/:role/:email", async(req, res)=>{
+            const role = req.params.role;
+            const email = req.params.email;
+            
+            const query = {email: email}
+            const user = await usersCollection.findOne(query)
+            const result = {role: user?.role === role}
+            res.send(result)
+        })
+
         //get classes
         app.get("/classes", async (req, res) => {
             const query = {}
