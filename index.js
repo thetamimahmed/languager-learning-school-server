@@ -3,6 +3,7 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const jwt = require('jsonwebtoken');
+const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -48,6 +49,7 @@ async function run() {
         const instructorCollection = client.db("LLCDB").collection("instructors");
         const bookingCollection = client.db("LLCDB").collection("bookingClasses");
         const addedClassCollection = client.db("LLCDB").collection("addedClass");
+        const paymentCollection = client.db("LLCDB").collection("payments");
 
         //jwt
         app.post("/jwt", (req, res) => {
@@ -76,7 +78,7 @@ async function run() {
         app.patch("/users/:newRole/:id", async (req, res) => {
             const newRole = req.params.newRole;
             const id = req.params.id;
-            const filter = {_id: new ObjectId(id)}
+            const filter = { _id: new ObjectId(id) }
             const updateDoc = {
                 $set: {
                     role: newRole
@@ -88,13 +90,13 @@ async function run() {
 
         })
 
-        app.get("/users/:role/:email", async(req, res)=>{
+        app.get("/users/:role/:email", async (req, res) => {
             const role = req.params.role;
             const email = req.params.email;
-            
-            const query = {email: email}
+
+            const query = { email: email }
             const user = await usersCollection.findOne(query)
-            const result = {role: user?.role === role}
+            const result = { role: user?.role === role }
             res.send(result)
         })
 
@@ -199,6 +201,27 @@ async function run() {
             const id = req.query.id;
             const query = { _id: new ObjectId(id) }
             const result = await bookingCollection.deleteOne(query)
+            res.send(result)
+        })
+
+        //create payment intent
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100; 
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"]
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+
+        app.post("/payments", async(req, res)=>{
+            const payment = req.body;
+            const result = await paymentCollection.insertOne(payment)
             res.send(result)
         })
 
