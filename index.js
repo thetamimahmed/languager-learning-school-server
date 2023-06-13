@@ -127,6 +127,7 @@ async function run() {
             const query = { email: email }
             const user = await usersCollection.findOne(query)
             const result = { role: user?.role === role }
+            console.log(result)
             res.send(result)
         })
 
@@ -166,6 +167,21 @@ async function run() {
 
 
         //added pending class
+        app.put("/addedClasses/:id", async(req, res)=>{
+            const id = req.params.id
+            const updateData = req.body;
+            const filter = {_id: new ObjectId(id)}
+            const updateDoc = {
+                $set: {
+                  name: updateData.name,
+                  price: updateData.price,
+                  available_seats: updateData.available_seats,
+                },
+              };
+            const result = await addedClassCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
         app.post("/addedClasses", verifyJWT, async (req, res) => {
             const addedClass = req.body
             const result = await addedClassCollection.insertOne(addedClass)
