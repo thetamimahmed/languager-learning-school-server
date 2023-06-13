@@ -57,9 +57,39 @@ async function run() {
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
             res.send(token)
         })
+        //verify Admin
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== 'admin') {
+              return res.status(403).send({ error: true, message: 'forbidden message' });
+            }
+            next();
+          }
+        //verify Instructor
+        const verifyInstructor= async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== 'instructor') {
+              return res.status(403).send({ error: true, message: 'forbidden message' });
+            }
+            next();
+          }
+        //Both  Admin and Instructor
+        const verifyAdminInstructor= async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await usersCollection.findOne(query);
+            if (user?.role !== 'instructor' && user?.role !== 'admin') {
+              return res.status(403).send({ error: true, message: 'forbidden message' });
+            }
+            next();
+          }
 
         //users
-        app.get("/users", async (req, res) => {
+        app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
@@ -110,7 +140,7 @@ async function run() {
             res.send(result)
         })
 
-        app.post("/classes", async (req, res) => {
+        app.post("/classes", verifyJWT, verifyInstructor, async (req, res) => {
             const approveClass = req.body;
             approveClass._id = new ObjectId(approveClass._id)
             const result = await classCollection.insertOne(approveClass)
@@ -142,7 +172,7 @@ async function run() {
             res.send(result)
         })
 
-        app.get("/addedClasses", verifyJWT, async (req, res) => {
+        app.get("/addedClasses", verifyJWT, verifyAdminInstructor, async (req, res) => {
             const email = req.query?.email
             let query = {}
             if (email) {
