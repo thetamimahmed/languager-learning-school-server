@@ -46,7 +46,6 @@ async function run() {
 
         const usersCollection = client.db("LLCDB").collection("users");
         const classCollection = client.db("LLCDB").collection("classCollection");
-        const instructorCollection = client.db("LLCDB").collection("instructors");
         const bookingCollection = client.db("LLCDB").collection("bookingClasses");
         const addedClassCollection = client.db("LLCDB").collection("addedClass");
         const paymentCollection = client.db("LLCDB").collection("payments");
@@ -127,7 +126,12 @@ async function run() {
             const query = { email: email }
             const user = await usersCollection.findOne(query)
             const result = { role: user?.role === role }
-            console.log(result)
+            res.send(result)
+        })
+
+        app.get("/instructors", async(req, res)=>{
+            const query = {role : "instructor"}
+            const result = await usersCollection.find(query).toArray()
             res.send(result)
         })
 
@@ -141,7 +145,7 @@ async function run() {
             res.send(result)
         })
 
-        app.post("/classes", verifyJWT, verifyInstructor, async (req, res) => {
+        app.post("/classes", async (req, res) => {
             const approveClass = req.body;
             approveClass._id = new ObjectId(approveClass._id)
             const result = await classCollection.insertOne(approveClass)
@@ -216,7 +220,6 @@ async function run() {
         app.patch('/addedClasses/:id', async (req, res) => {
             const id = req.params.id;
             const feedbackText = req.body;
-            console.log(feedbackText)
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
@@ -229,15 +232,6 @@ async function run() {
 
         })
 
-        //get instructors
-        app.get("/instructors", async (req, res) => {
-            const query = {}
-            const options = {
-                sort: { "students_in_class": -1 }
-            }
-            const result = await instructorCollection.find(query, options).toArray()
-            res.send(result)
-        })
 
         //booking class
         app.post("/bookingclasses", async (req, res) => {
@@ -289,7 +283,7 @@ async function run() {
         })
 
         app.get("/payments", async(req, res)=>{
-            const result = await paymentCollection.find().toArray()
+            const result = await paymentCollection.find().sort({date: -1}).toArray()
             res.send(result)
         })
 
